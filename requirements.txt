@@ -1,8 +1,9 @@
-selenium
-requests
 pytest
-allure-pytest
-pytest-xdist
+selenium
 webdriver-manager
-flake8
+allure-pytest
 python-dotenv
+requests
+pytest-rerunfailures
+pytest-html
+pytest-metadata

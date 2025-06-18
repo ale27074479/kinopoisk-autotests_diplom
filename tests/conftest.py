@@ -1,36 +1,43 @@
 import pytest
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from dotenv import load_dotenv
 import os
+import allure
 
 load_dotenv()
 
-
-def pytest_addoption(parser):
-    parser.addoption('--browser', action='store', default='chrome',
-                    help='Choose browser: chrome or firefox')
-    parser.addoption('--headless', action='store_true',
-                    help='Run tests in headless mode')
-
-
 @pytest.fixture(scope='function')
-def driver(request):
-    browser = request.config.getoption('browser')
-    headless = request.config.getoption('headless')
+def driver():
+    options = Options()
     
-    if browser == 'chrome':
-        options = webdriver.ChromeOptions()
-        if headless:
-            options.add_argument('--headless')
-        driver = webdriver.Chrome(options=options)
-    elif browser == 'firefox':
-        options = webdriver.FirefoxOptions()
-        if headless:
-            options.add_argument('--headless')
-        driver = webdriver.Firefox(options=options)
-    else:
-        raise ValueError(f'Unsupported browser: {browser}')
+    # Основные настройки
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_experimental_option('excludeSwitches', ['enable-automation'])
+    options.add_experimental_option('useAutomationExtension', False)
     
-    driver.maximize_window()
+    if os.getenv('HEADLESS') == 'True':
+        options.add_argument('--headless=new')
+    
+    # Настройки для обхода защиты
+    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
+    
+    # Убираем признаки автоматизации
+    driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+        'source': '''
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            })
+        '''
+    })
+    
     yield driver
     driver.quit()
