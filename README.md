@@ -18,6 +18,7 @@ KINOPOISK_URL=https://www.kinopoisk.ru
   - `movies_page.py` - страница с фильмами
   - `search_page.py` - страница результатов поиска
   - `advanced_search_page.py` - страница расширенного поиска
+  - `movie_page.py` - страница фильма
 - `tests/` - автоматизированные тесты
   - `test_ui.py` - UI тесты
   - `test_api.py` - API тесты
